@@ -1,0 +1,44 @@
+{
+  "grid_size": 8,
+  "turn": 1,
+  "actions_left": 2,
+  "board": [
+    ["[]", "R",  "[]", "[]", "[]", "[]", "[]", "[]"],
+    ["[]", "[]", "X",  "[]", "[]", "[]", "[]", "[]"],
+    ["[]", "[]", "[]", "[]", "F",  "[]", "[]", "[]"],
+    ["[]", "X",  "[]", "[]", "[]", "[]", "[]", "[]"],
+    ["[]", "[]", "[]", "[]", "[]", "[]", "T",  "[]"],
+    ["[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"],
+    ["[]", "[]", "C",  "[]", "[]", "[]", "[]", "[]"],
+    ["Z",  "Z",  "[]", "[]", "[]", "[]", "[]", "[]"]
+  ],
+  "species": [
+    {
+      "symbol": "R",
+      "name": "Rabbit",
+      "population": 4,
+      "hunger": 6,
+      "position": [0, 1],
+      "status": "active"
+    },
+    {
+      "symbol": "F",
+      "name": "Fox",
+      "population": 7,
+      "hunger": 2,
+      "position": [2, 4],
+      "status": "active"
+    },
+    {
+      "symbol": "T",
+      "name": "Turtle",
+      "population": 9,
+      "hunger": 1,
+      "position": [4, 6],
+      "status": "active"
+    }
+  ],
+  "greedy_recommendation": "R",
+  "migration_path": [],
+  "game_status": "running"
+}
