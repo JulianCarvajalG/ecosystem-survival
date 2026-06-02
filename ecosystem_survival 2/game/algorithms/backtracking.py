@@ -24,9 +24,9 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "../../data/state.json")
 
 # Los 8 movimientos posibles: arriba, abajo, izquierda, derecha y las 4 diagonales
 DIRECTIONS = [
-    (-1, -1), (-1, 0), (-1, 1),
-    ( 0, -1),          ( 0, 1),
-    ( 1, -1), ( 1, 0), ( 1, 1),
+    ( 1, 0), ( 1, -1), ( 1, 1), 
+    ( 0, -1),          ( 0, 1), 
+    (-1, 0), (-1, -1), (-1, 1) 
 ]
 
 # Símbolos de especies para saber cuándo una celda está ocupada por otro animal
