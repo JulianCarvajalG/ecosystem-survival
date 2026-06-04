@@ -45,7 +45,7 @@ def construir_estado_inicial():
             ["[]", "X",  "[]", "[]", "[]", "[]", "[]", "[]"],
             ["[]", "[]", "[]", "[]", "[]", "[]", "T",  "[]"],
             ["[]", "[]", "[]", "[]", "X",  "[]", "[]", "[]"],
-            ["[]", "[]", "C",  "[]", "[]", "[]", "[]", "[]"],
+            ["[]", "[]", "[]", "[]", "[]", "D",  "[]", "[]"],
             ["Z",  "Z",  "[]", "[]", "[]", "[]", "[]", "[]"]
         ],
         "species": [
@@ -55,6 +55,8 @@ def construir_estado_inicial():
              "position": [2, 4], "status": "active", "fed_this_turn": False},
             {"symbol": "T", "name": "Turtle", "population": 3, "hunger": 1,
              "position": [4, 6], "status": "active", "fed_this_turn": False},
+            {"symbol": "D", "name": "Deer",   "population": 3, "hunger": 2,
+             "position": [6, 5], "status": "active", "fed_this_turn": False},
         ],
         "greedy_recommendation": "",
         "migration_path": [],
@@ -66,7 +68,7 @@ def construir_estado_inicial():
 
 FEED_REDUCTION   = 2
 FOOD_CELL_BONUS  = 2
-HUNGER_THRESHOLD = 3
+HUNGER_THRESHOLD = 6
 HUNGER_PER_TURN  = 1
 ACTIONS_PER_TURN = 2
 

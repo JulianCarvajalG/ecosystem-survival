@@ -20,7 +20,7 @@ import json
 import os
 
 # Las rutas son relativas a donde está este archivo
-BASE_DIR   = os.path.join(os.path.dirname(__file__), "../../data")
+BASE_DIR   = os.path.join(os.path.dirname(__file__), "../data")
 INPUT_PATH = os.path.join(BASE_DIR, "input.json")
 STATE_PATH = os.path.join(BASE_DIR, "state.json")
 

@@ -101,7 +101,7 @@ json construirEstadoInicial() {
     estado["actions_left"] = ACTIONS_PER_TURN;
 
     // Tablero inicial con posiciones fijas para cada especie
-    // R=Rabbit, F=Fox, T=Turtle, X=peligro, C=comida, Z=zona segura
+    // R=Rabbit, F=Fox, T=Turtle, D=Deer, X=peligro, Z=zona segura
     estado["board"] = {
         {"[]", "R",  "[]", "[]", "[]", "X",  "[]", "[]"},
         {"[]", "[]", "X",  "[]", "[]", "[]", "[]", "[]"},
@@ -109,7 +109,7 @@ json construirEstadoInicial() {
         {"[]", "X",  "[]", "[]", "[]", "[]", "[]", "[]"},
         {"[]", "[]", "[]", "[]", "[]", "[]", "T",  "[]"},
         {"[]", "[]", "[]", "[]", "X",  "[]", "[]", "[]"},
-        {"[]", "[]", "C",  "[]", "[]", "[]", "[]", "[]"},
+        {"[]", "[]", "[]", "[]", "[]", "D",  "[]", "[]"},
         {"Z",  "Z",  "[]", "[]", "[]", "[]", "[]", "[]"}
     };
 
@@ -121,7 +121,9 @@ json construirEstadoInicial() {
         {{"symbol","F"},{"name","Fox"},{"population",3},{"hunger",2},
          {"position",{2,4}},{"status","active"},{"fed_this_turn",false}},
         {{"symbol","T"},{"name","Turtle"},{"population",3},{"hunger",1},
-         {"position",{4,6}},{"status","active"},{"fed_this_turn",false}}
+         {"position",{4,6}},{"status","active"},{"fed_this_turn",false}},
+        {{"symbol","D"},{"name","Deer"},{"population",3},{"hunger",2},
+         {"position",{6,5}},{"status","active"},{"fed_this_turn",false}}
     };
 
     estado["greedy_recommendation"] = "";
