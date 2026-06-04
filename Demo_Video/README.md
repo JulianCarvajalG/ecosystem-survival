@@ -6,4 +6,4 @@ Welcome to the **Ecosystem Survival** project! This is an educational and intera
 
 Check out the demo video of the game in action:
 
-[Watch the Demo on YouTube](https://drive.google.com/drive/folders/1MBcsNb1-GgVOPvhsOGEG7v0B2jazNEqc?usp=sharing)
+[Watch the Demo](https://drive.google.com/drive/folders/1MBcsNb1-GgVOPvhsOGEG7v0B2jazNEqc?usp=sharing)
