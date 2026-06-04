@@ -17,7 +17,16 @@ import pygame
 import sys
 import subprocess
 import os 
+import json
 from game.algorithms import bridge, backtracking, greedy
+from simulator import (
+    ACTIONS_PER_TURN,
+    construir_estado_inicial,
+    efectos_fin_turno,
+    procesar_alimentacion,
+    procesar_migracion,
+    verificar_estado_juego,
+)
 
 # Initialization
 pygame.init()
@@ -35,6 +44,7 @@ reloj = pygame.time.Clock()
 
 # Fonts
 fuente = pygame.font.SysFont(None, 28)
+fuente_pequena = pygame.font.SysFont(None, 22)
 fuente_grande = pygame.font.SysFont(None, 70) 
 
 # Colors
@@ -71,11 +81,53 @@ for simbolo, archivo in nombres_archivos.items():
 especie_seleccionada = None
 
 # Engine
+def ejecutar_engine_python():
+    if not bridge.state_exists():
+        estado = construir_estado_inicial()
+        with open(bridge.STATE_PATH, "w") as f:
+            json.dump(estado, f, indent=2)
+        return
+
+    if not os.path.exists(bridge.INPUT_PATH):
+        return
+
+    with open(bridge.STATE_PATH, "r") as f:
+        estado = json.load(f)
+
+    with open(bridge.INPUT_PATH, "r") as f:
+        entrada = json.load(f)
+
+    accion = entrada.get("action")
+    simbolo = entrada.get("species")
+    accion_procesada = False
+
+    if accion == "feed":
+        accion_procesada = procesar_alimentacion(estado, simbolo)
+    elif accion == "migrate":
+        accion_procesada = procesar_migracion(estado, simbolo)
+
+    if accion_procesada:
+        estado["actions_left"] -= 1
+
+    if estado["actions_left"] <= 0:
+        efectos_fin_turno(estado)
+        estado["turn"] += 1
+        estado["actions_left"] = ACTIONS_PER_TURN
+
+    estado["game_status"] = verificar_estado_juego(estado)
+
+    with open(bridge.STATE_PATH, "w") as f:
+        json.dump(estado, f, indent=2)
+
 def ejecutar_engine():
     try:
         subprocess.run(["engine/game_engine.exe"], check=True)
     except FileNotFoundError:
-        print("Error: game_engine.exe not found in engine/ folder")
+        print("Error: game_engine.exe not found in engine/ folder. Using Python fallback.")
+        ejecutar_engine_python()
+    except subprocess.CalledProcessError as exc:
+        print(f"Error: game_engine.exe failed with code {exc.returncode}. Using Python fallback.")
+        ejecutar_engine_python()
 
 # Board
 def dibujar_tablero(tablero_datos):
@@ -99,8 +151,62 @@ def dibujar_tablero(tablero_datos):
             if simbolo == especie_seleccionada and simbolo in ["R", "F", "T"]:
                 pygame.draw.rect(pantalla, (255, 0, 0), (x, y, TAMANO_CELDA, TAMANO_CELDA), 3)
 
+def obtener_rutas_backtracking(estado, simbolo):
+    if not estado or not simbolo:
+        return [], []
+
+    ruta_completa = backtracking.get_migration_path(simbolo, estado)
+    siguiente = backtracking.get_next_steps(ruta_completa)
+    return ruta_completa, siguiente
+
+def dibujar_ruta_backtracking(ruta_completa, siguiente):
+    if not ruta_completa:
+        return
+
+    siguiente_set = {tuple(paso) for paso in siguiente}
+
+    for indice, (fila, col) in enumerate(ruta_completa):
+        centro_x = col * TAMANO_CELDA + TAMANO_CELDA // 2
+        centro_y = fila * TAMANO_CELDA + TAMANO_CELDA // 2
+
+        if indice > 0:
+            fila_ant, col_ant = ruta_completa[indice - 1]
+            centro_ant = (
+                col_ant * TAMANO_CELDA + TAMANO_CELDA // 2,
+                fila_ant * TAMANO_CELDA + TAMANO_CELDA // 2
+            )
+            pygame.draw.line(pantalla, (0, 120, 255), centro_ant, (centro_x, centro_y), 5)
+
+        color = (255, 230, 0) if (fila, col) in siguiente_set else (0, 120, 255)
+        pygame.draw.circle(pantalla, color, (centro_x, centro_y), 9)
+        pygame.draw.circle(pantalla, (20, 20, 20), (centro_x, centro_y), 9, 2)
+
+def formatear_ruta(ruta):
+    return " -> ".join(f"[{fila},{col}]" for fila, col in ruta)
+
+def dibujar_texto_envuelto(texto, x, y, ancho, color=(230, 230, 230), fuente_texto=None, alto_linea=22):
+    fuente_texto = fuente_texto or fuente_pequena
+    palabras = texto.split(" ")
+    linea = ""
+
+    for palabra in palabras:
+        prueba = palabra if not linea else f"{linea} {palabra}"
+        if fuente_texto.size(prueba)[0] <= ancho:
+            linea = prueba
+        else:
+            if linea:
+                pantalla.blit(fuente_texto.render(linea, True, color), (x, y))
+                y += alto_linea
+            linea = palabra
+
+    if linea:
+        pantalla.blit(fuente_texto.render(linea, True, color), (x, y))
+        y += alto_linea
+
+    return y
+
 # HUD
-def dibujar_hud(estado):
+def dibujar_hud(estado, ruta_completa=None, siguiente=None):
     pygame.draw.rect(pantalla, (40, 40, 40), (ANCHO_TABLERO, 0, ANCHO_HUD, ALTO_PANTALLA))
     
     turno = bridge.get_turn(estado)
@@ -128,6 +234,21 @@ def dibujar_hud(estado):
     pantalla.blit(fuente.render("Click: Select", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 30))
     pantalla.blit(fuente.render("'A': Feed", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 60))
     pantalla.blit(fuente.render("'M': Migrate", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 90))
+
+    y_offset += 135
+    pantalla.blit(fuente.render("Backtracking:", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset))
+    y_offset += 28
+
+    if especie_seleccionada:
+        if ruta_completa:
+            texto_ruta = f"{especie_seleccionada} full path ({len(ruta_completa)}): {formatear_ruta(ruta_completa)}"
+            texto_siguiente = f"Next move ({max(0, len(siguiente) - 1)}): {formatear_ruta(siguiente)}"
+            y_offset = dibujar_texto_envuelto(texto_ruta, ANCHO_TABLERO + 20, y_offset, ANCHO_HUD - 35, (120, 190, 255))
+            y_offset = dibujar_texto_envuelto(texto_siguiente, ANCHO_TABLERO + 20, y_offset + 6, ANCHO_HUD - 35, (255, 230, 0))
+        else:
+            pantalla.blit(fuente_pequena.render(f"{especie_seleccionada}: no path available", True, (255, 180, 180)), (ANCHO_TABLERO + 20, y_offset))
+    else:
+        pantalla.blit(fuente_pequena.render("Select a species to preview", True, (180, 180, 180)), (ANCHO_TABLERO + 20, y_offset))
 
 # Startup
 if not bridge.state_exists():
@@ -197,9 +318,15 @@ while corriendo:
     # Render
     pantalla.fill((255, 255, 255)) 
     dibujar_tablero(matriz_tablero)
+
+    ruta_completa = []
+    siguiente = []
+    if estado_actual and especie_seleccionada and estado_juego == "running":
+        ruta_completa, siguiente = obtener_rutas_backtracking(estado_actual, especie_seleccionada)
+        dibujar_ruta_backtracking(ruta_completa, siguiente)
     
     if estado_actual:
-        dibujar_hud(estado_actual)
+        dibujar_hud(estado_actual, ruta_completa, siguiente)
         
     # Ending
     if estado_juego in ["lost", "won"]:
