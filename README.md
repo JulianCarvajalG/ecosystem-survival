@@ -1,4 +1,4 @@
-# 🌿 Ecosystem Survival — Checkpoint 1
+# 🌿 Ecosystem Survival 
 
 ## 📌 Project Overview
 
