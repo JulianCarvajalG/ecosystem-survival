@@ -21,6 +21,9 @@ import json
 from game.algorithms import bridge, backtracking, greedy
 from simulator import (
     ACTIONS_PER_TURN,
+    FEED_REDUCTION,
+    HUNGER_PER_TURN,
+    HUNGER_THRESHOLD,
     construir_estado_inicial,
     efectos_fin_turno,
     procesar_alimentacion,
@@ -81,6 +84,17 @@ for simbolo, archivo in nombres_archivos.items():
 especie_seleccionada = None
 
 # Engine
+def reiniciar_estado():
+    ruta_estado = "data/state.json"
+    ruta_input = "data/input.json"
+
+    if os.path.exists(ruta_estado):
+        os.remove(ruta_estado)
+    if os.path.exists(ruta_input):
+        os.remove(ruta_input)
+
+    ejecutar_engine()
+
 def ejecutar_engine_python():
     if not bridge.state_exists():
         estado = construir_estado_inicial()
@@ -224,18 +238,26 @@ def dibujar_hud(estado, ruta_completa=None, siguiente=None):
     y_offset = 150 
     
     for sp in especies:
-        info = f"{sp['name']}: Pop {sp['population']} | Hun {sp['hunger']}"
-        color_texto = COLORES.get(sp['symbol'], (255, 255, 255)) 
+        alerta_hambre = " !" if sp["status"] == "active" and sp["hunger"] >= HUNGER_THRESHOLD else ""
+        info = f"{sp['name']}: Pop {sp['population']} | Hun {sp['hunger']}{alerta_hambre}"
+        color_texto = (255, 90, 90) if alerta_hambre else COLORES.get(sp['symbol'], (255, 255, 255)) 
         pantalla.blit(fuente.render(info, True, color_texto), (ANCHO_TABLERO + 20, y_offset))
         y_offset += 40
 
     y_offset += 20
+    pantalla.blit(fuente.render("Rules:", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset))
+    pantalla.blit(fuente_pequena.render(f"Feed: -{FEED_REDUCTION} hunger", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 28))
+    pantalla.blit(fuente_pequena.render(f"Turn: +{HUNGER_PER_TURN} hunger", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 52))
+    pantalla.blit(fuente_pequena.render(f"Pop loss: hunger >= {HUNGER_THRESHOLD}", True, (255, 170, 170)), (ANCHO_TABLERO + 20, y_offset + 76))
+
+    y_offset += 112
     pantalla.blit(fuente.render("Controls:", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset))
     pantalla.blit(fuente.render("Click: Select", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 30))
-    pantalla.blit(fuente.render("'A': Feed", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 60))
+    pantalla.blit(fuente.render(f"'A': Feed (-{FEED_REDUCTION})", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 60))
     pantalla.blit(fuente.render("'M': Migrate", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 90))
+    pantalla.blit(fuente.render("'R': Reset", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 120))
 
-    y_offset += 135
+    y_offset += 165
     pantalla.blit(fuente.render("Backtracking:", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset))
     y_offset += 28
 
@@ -281,16 +303,8 @@ while corriendo:
             # Restart
             if estado_juego in ["lost", "won"]:
                 if rect_boton_reiniciar.collidepoint(x_mouse, y_mouse):
-                    ruta_estado = "data/state.json"
-                    ruta_input = "data/input.json"
-                    
-                    if os.path.exists(ruta_estado):
-                        os.remove(ruta_estado)
-                    if os.path.exists(ruta_input):
-                        os.remove(ruta_input)
-                    
                     especie_seleccionada = None
-                    ejecutar_engine() 
+                    reiniciar_estado() 
             
             # Selection
             elif estado_juego == "running" and x_mouse < ANCHO_TABLERO:
@@ -303,6 +317,10 @@ while corriendo:
 
         # Keyboard
         elif evento.type == pygame.KEYDOWN and estado_juego == "running":
+            if evento.key == pygame.K_r:
+                especie_seleccionada = None
+                reiniciar_estado()
+
             if especie_seleccionada:
                 if evento.key == pygame.K_a:
                     bridge.write_action("feed", especie_seleccionada)

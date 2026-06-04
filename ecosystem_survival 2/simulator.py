@@ -39,21 +39,21 @@ def construir_estado_inicial():
         "turn": 1,
         "actions_left": 2,
         "board": [
-            ["[]", "R",  "[]", "[]", "[]", "[]", "[]", "[]"],
+            ["[]", "R",  "[]", "[]", "[]", "X",  "[]", "[]"],
             ["[]", "[]", "X",  "[]", "[]", "[]", "[]", "[]"],
             ["[]", "[]", "[]", "[]", "F",  "[]", "[]", "[]"],
             ["[]", "X",  "[]", "[]", "[]", "[]", "[]", "[]"],
             ["[]", "[]", "[]", "[]", "[]", "[]", "T",  "[]"],
-            ["[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"],
+            ["[]", "[]", "[]", "[]", "X",  "[]", "[]", "[]"],
             ["[]", "[]", "C",  "[]", "[]", "[]", "[]", "[]"],
             ["Z",  "Z",  "[]", "[]", "[]", "[]", "[]", "[]"]
         ],
         "species": [
-            {"symbol": "R", "name": "Rabbit", "population": 5, "hunger": 3,
+            {"symbol": "R", "name": "Rabbit", "population": 3, "hunger": 3,
              "position": [0, 1], "status": "active", "fed_this_turn": False},
-            {"symbol": "F", "name": "Fox",    "population": 7, "hunger": 2,
+            {"symbol": "F", "name": "Fox",    "population": 3, "hunger": 2,
              "position": [2, 4], "status": "active", "fed_this_turn": False},
-            {"symbol": "T", "name": "Turtle", "population": 9, "hunger": 1,
+            {"symbol": "T", "name": "Turtle", "population": 3, "hunger": 1,
              "position": [4, 6], "status": "active", "fed_this_turn": False},
         ],
         "greedy_recommendation": "",
@@ -64,9 +64,10 @@ def construir_estado_inicial():
 
 # --- Constantes de juego (iguales al engine C++) ---
 
-FEED_REDUCTION   = 3
+FEED_REDUCTION   = 2
 FOOD_CELL_BONUS  = 2
-HUNGER_THRESHOLD = 8
+HUNGER_THRESHOLD = 3
+HUNGER_PER_TURN  = 1
 ACTIONS_PER_TURN = 2
 
 
@@ -235,7 +236,7 @@ def efectos_fin_turno(state):
         if sp["status"] != "active":
             continue
 
-        sp["hunger"] += 1
+        sp["hunger"] += HUNGER_PER_TURN
 
         if sp["hunger"] >= HUNGER_THRESHOLD:
             sp["population"] -= 1
@@ -254,17 +255,12 @@ def efectos_fin_turno(state):
 
 def verificar_estado_juego(state):
     # Revisamos si alguien ganó o perdió con el estado actual
-    especies_no_extintas = [sp for sp in state["species"] if sp["status"] != "extinct"]
-
-    if not especies_no_extintas:
-        return "lost"
-
-    if all(sp["status"] == "safe" for sp in especies_no_extintas):
-        return "won"
-
     for sp in state["species"]:
-        if sp["population"] <= 0:
+        if sp["population"] <= 0 or sp["status"] == "extinct":
             return "lost"
+
+    if all(sp["status"] == "safe" for sp in state["species"]):
+        return "won"
 
     return "running"
 
