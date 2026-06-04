@@ -1,85 +1,93 @@
-# 🌿 Ecosystem Survival 
+# 🌿 Ecosystem Survival
 
 ## 📌 Project Overview
 
-**Ecosystem Survival** is a grid-based strategy game developed as part of the *Computer Science I* course. The core idea of the project is to transform fundamental computer science concepts—such as algorithms and data structures—into interactive gameplay mechanics.
+**Ecosystem Survival** is a grid-based strategy and simulation game developed as part of the *Computer Science I* course. The project transforms fundamental computer science concepts—such as algorithms and data structures—into interactive gameplay mechanics.
 
 In this game, the player is responsible for maintaining the balance of a small ecosystem. Different species coexist on a board, each with its own needs, risks, and survival conditions. The player must make strategic decisions to ensure that no species becomes extinct while guiding them toward safe zones.
 
-What makes the game especially engaging is that every decision is backed by algorithmic logic:
+What makes the game especially interesting is that every decision is driven by algorithmic logic:
 
-* A **greedy strategy** helps prioritize which species should be fed first.
-* A **backtracking algorithm** determines safe migration paths across the board.
+- A **greedy algorithm** prioritizes which species should be handled first based on risk.
+- A **backtracking algorithm** finds safe migration paths across the board.
+- An **AVL Tree** is used to efficiently store and manage species data in real time.
 
-This creates a unique blend of problem-solving, strategy, and simulation, where the player is constantly balancing short-term survival with long-term planning.
+This creates a hybrid system where strategy, simulation, and data structures work together dynamically.
 
 ---
 
 ## 🎮 Why is the game interesting?
 
-Ecosystem Survival is more than just a game—it is an interactive way to experience how algorithms work in real scenarios.
+Ecosystem Survival is more than a game—it is an applied simulation of computer science concepts.
 
-* It introduces **strategic thinking** through limited actions per turn.
-* It creates **tension and urgency** with hunger and extinction mechanics.
-* It rewards **planning and optimization**, not just random decisions.
-* It connects theory (algorithms & data structures) with **visual and intuitive gameplay**.
+- It introduces **strategic decision-making under constraints**
+- It simulates **dynamic system behavior over time**
+- It connects theory (algorithms & data structures) with real execution logic
+- It forces the player to adapt to a constantly changing environment
 
-Each match feels dynamic, as the board configuration and species conditions change, forcing the player to adapt continuously.
+Each turn feels dynamic, since species conditions and board states evolve continuously.
+
+---
+
+## 🧠 System Architecture
+
+The project is implemented as a modular multi-layer system:
+
+- **Python (AI Layer):** Handles decision-making using Greedy and Backtracking algorithms  
+- **C++ (Engine Layer):** Executes game rules, validates movements, and processes turns  
+- **AVL Tree (Data Structure):** Stores and manages all species efficiently  
+- **JSON (Communication Layer):** Synchronizes state between Python and C++  
+
+All components interact through a shared JSON state file, ensuring consistency across the system.
 
 ---
 
 ## 📂 Repository Structure
 
-At this stage (Checkpoint 1), the repository is focused on **design and planning**, not implementation. It contains the following main folders:
+At this stage (Checkpoint 1), the repository focuses on design and system planning rather than full implementation.
 
 ### 📁 `documentation/`
 
-This folder includes all the technical and conceptual work developed so far for the project. It serves as the foundation for the final implementation.
+Contains all technical and conceptual design work:
 
-Contents may include:
+- Checkpoint report (PDF)
+- Algorithm design (Greedy & Backtracking pseudocode)
+- Data structure design (AVL Tree and others)
+- JSON input/output specification
+- Game rules and system behavior
+- System architecture diagrams
 
-* The checkpoint report (PDF)
-* Algorithm design (greedy and backtracking pseudocode)
-* Data structure design (linked list and tree)
-* JSON input/output contract
-* Game rules and system behavior
-* Wireframes and visual planning
-
-👉 In short, this folder explains **how the system is intended to work before coding begins**.
+👉 This folder defines how the system is intended to work before implementation.
 
 ---
 
 ### 📁 `video_demo/`
 
-This folder contains the demonstration video for the checkpoint.
+Contains the checkpoint demonstration video:
 
-The video presents:
+- Game concept explanation
+- Rules and mechanics overview
+- Design decisions
+- Visual representation of system behavior
 
-* The concept of the game
-* The rules and mechanics
-* The design decisions made so far
-* A visual explanation of how the system will behave
-
-👉 It complements the documentation by providing a **clear and visual explanation of the project**.
+👉 It complements the documentation with a visual explanation of the project.
 
 ---
 
 ## 🎯 Main Objective of the Project
 
-The main goal of Ecosystem Survival is to design and later implement a fully functional game where:
+The goal of Ecosystem Survival is to design and implement a system where:
 
-* Algorithms are **part of the gameplay**, not just background logic.
-* Data structures are used to **model and manage dynamic systems**.
-* The player interacts with a system that is both **fun and technically meaningful**.
+- Algorithms are part of the gameplay logic
+- Data structures manage a dynamic ecosystem efficiently
+- The system behaves like a real-time simulation engine
 
-At this checkpoint, the focus is on building a **solid foundation**:
+At this checkpoint, the focus is on building a solid theoretical and structural foundation:
 
-* Defining rules
-* Designing algorithms
-* Structuring data
-* Planning system interactions
-
-All of this will guide the next stages of development, where the game will be implemented and tested.
+- Rule definition
+- Algorithm design
+- Data structure modeling
+- System architecture planning
 
 ---
 
@@ -87,22 +95,23 @@ All of this will guide the next stages of development, where the game will be im
 
 This repository corresponds to **Milestone 1 (Checkpoint)**.
 
-✔️ Design completed
-✔️ Algorithms defined
-✔️ Data structures planned
-✔️ System interaction (JSON) specified
-❌ No executable code yet
+✔️ System design completed  
+✔️ Algorithms defined (Greedy + Backtracking)  
+✔️ AVL Tree concept designed  
+✔️ JSON communication structure defined  
+✔️ Architecture designed  
+❌ Full gameplay implementation pending  
 
 ---
 
 ## 👥 Team
 
-* Cristian Esteban Castañeda Vargas
-* Julian Carvajal Garnica
-* Juan Pablo Angulo Guerrero
+- Cristian Esteban Castañeda Vargas  
+- Julian Carvajal Garnica  
+- Juan Pablo Angulo Guerrero  
 
 ---
 
 ## 📎 Note
 
-This repository represents a **design-stage project**. The implementation (code) will be developed in the next milestones.
+This repository represents a **design-stage project**. The implementation will be developed and integrated in later milestones.
