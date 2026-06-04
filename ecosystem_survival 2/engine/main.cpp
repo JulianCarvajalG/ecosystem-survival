@@ -29,9 +29,9 @@ const std::string INPUT_PATH = "data/input.json";
 const int GRID_SIZE        = 8;
 const int ACTIONS_PER_TURN = 2;
 const int HUNGER_PER_TURN  = 1;   // cuánta hambre sube al final de cada turno
-const int FEED_REDUCTION   = 3;   // cuánta hambre baja al alimentar una especie
+const int FEED_REDUCTION   = 2;   // cuánta hambre baja al alimentar una especie
 const int FOOD_CELL_BONUS  = 2;   // cuánta hambre baja si la especie pasa por una C
-const int HUNGER_THRESHOLD = 8;   // a partir de aquí la especie empieza a perder población
+const int HUNGER_THRESHOLD = 2;   // a partir de aquí la especie empieza a perder población
 
 
 // --- Funciones auxiliares del tablero ---
@@ -101,27 +101,29 @@ json construirEstadoInicial() {
     estado["actions_left"] = ACTIONS_PER_TURN;
 
     // Tablero inicial con posiciones fijas para cada especie
-    // R=Rabbit, F=Fox, T=Turtle, X=peligro, C=comida, Z=zona segura
+    // R=Rabbit, F=Fox, T=Turtle, D=Deer, X=peligro, Z=zona segura
     estado["board"] = {
-        {"[]", "R",  "[]", "[]", "[]", "[]", "[]", "[]"},
+        {"[]", "R",  "[]", "[]", "[]", "X",  "[]", "[]"},
         {"[]", "[]", "X",  "[]", "[]", "[]", "[]", "[]"},
         {"[]", "[]", "[]", "[]", "F",  "[]", "[]", "[]"},
         {"[]", "X",  "[]", "[]", "[]", "[]", "[]", "[]"},
         {"[]", "[]", "[]", "[]", "[]", "[]", "T",  "[]"},
-        {"[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"},
-        {"[]", "[]", "C",  "[]", "[]", "[]", "[]", "[]"},
+        {"[]", "[]", "[]", "[]", "X",  "[]", "[]", "[]"},
+        {"[]", "[]", "[]", "[]", "[]", "D",  "[]", "[]"},
         {"Z",  "Z",  "[]", "[]", "[]", "[]", "[]", "[]"}
     };
 
     // Datos iniciales de cada especie
     // fed_this_turn empieza en false para todos porque es turno nuevo
     estado["species"] = {
-        {{"symbol","R"},{"name","Rabbit"},{"population",5},{"hunger",3},
+        {{"symbol","R"},{"name","Rabbit"},{"population",3},{"hunger",3},
          {"position",{0,1}},{"status","active"},{"fed_this_turn",false}},
-        {{"symbol","F"},{"name","Fox"},{"population",7},{"hunger",2},
+        {{"symbol","F"},{"name","Fox"},{"population",3},{"hunger",2},
          {"position",{2,4}},{"status","active"},{"fed_this_turn",false}},
-        {{"symbol","T"},{"name","Turtle"},{"population",9},{"hunger",1},
-         {"position",{4,6}},{"status","active"},{"fed_this_turn",false}}
+        {{"symbol","T"},{"name","Turtle"},{"population",3},{"hunger",1},
+         {"position",{4,6}},{"status","active"},{"fed_this_turn",false}},
+        {{"symbol","D"},{"name","Deer"},{"population",3},{"hunger",2},
+         {"position",{6,5}},{"status","active"},{"fed_this_turn",false}}
     };
 
     estado["greedy_recommendation"] = "";
@@ -169,21 +171,17 @@ AVLTree cargarEspeciesEnArbol(const json& estado) {
 // Pierden si cualquier especie llega a población 0.
 std::string verificarEstadoJuego(AVLTree& arbol) {
     auto especies = arbol.getAllSpecies();
-    int totalActivas = 0;
     int totalSeguras = 0;
 
     for (auto* sp : especies) {
-        if (sp->status == "extinct") continue;
+        // Si alguna especie se extingue, perdemos antes de revisar victoria
+        if (sp->status == "extinct" || sp->population <= 0) return "lost";
 
-        // Si alguna especie activa llega a población 0, perdemos inmediatamente
-        if (sp->population <= 0) return "lost";
-
-        totalActivas++;
         if (sp->status == "safe") totalSeguras++;
     }
 
-    // Si todas las no extintas están seguras, ganamos
-    if (totalActivas > 0 && totalSeguras == totalActivas) return "won";
+    // Si todas las especies están seguras, ganamos
+    if (!especies.empty() && totalSeguras == static_cast<int>(especies.size())) return "won";
 
     return "running";
 }

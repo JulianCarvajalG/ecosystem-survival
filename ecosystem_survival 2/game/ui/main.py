@@ -18,9 +18,18 @@ import sys
 import subprocess
 import os 
 import json
-from game.algorithms import bridge, backtracking, greedy
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from game import bridge
+from game.algorithms import backtracking, greedy
 from simulator import (
     ACTIONS_PER_TURN,
+    FEED_REDUCTION,
+    HUNGER_PER_TURN,
+    HUNGER_THRESHOLD,
     construir_estado_inicial,
     efectos_fin_turno,
     procesar_alimentacion,
@@ -53,8 +62,8 @@ COLORES = {
     "R": (139, 69, 19),
     "F": (255, 140, 0),
     "T": (34, 139, 34),
+    "D": (160, 110, 70),
     "X": (220, 20, 60),
-    "C": (255, 215, 0),
     "Z": (0, 255, 255)
 }
 
@@ -64,13 +73,13 @@ nombres_archivos = {
     "R": "conejo.png",
     "F": "zorro.png",
     "T": "tortuga.png",
-    "C": "comida.png",
+    "D": "ciervo.png",
     "X": "peligro.png",
     "Z": "zona_segura.png"
 }
 
 for simbolo, archivo in nombres_archivos.items():
-    ruta = os.path.join("assets", archivo)
+    ruta = os.path.join(PROJECT_ROOT, "assets", archivo)
     try:
         img = pygame.image.load(ruta).convert_alpha()
         IMAGENES[simbolo] = pygame.transform.scale(img, (TAMANO_CELDA, TAMANO_CELDA))
@@ -81,6 +90,14 @@ for simbolo, archivo in nombres_archivos.items():
 especie_seleccionada = None
 
 # Engine
+def reiniciar_estado():
+    if os.path.exists(bridge.STATE_PATH):
+        os.remove(bridge.STATE_PATH)
+    if os.path.exists(bridge.INPUT_PATH):
+        os.remove(bridge.INPUT_PATH)
+
+    ejecutar_engine()
+
 def ejecutar_engine_python():
     if not bridge.state_exists():
         estado = construir_estado_inicial()
@@ -121,7 +138,8 @@ def ejecutar_engine_python():
 
 def ejecutar_engine():
     try:
-        subprocess.run(["engine/game_engine.exe"], check=True)
+        engine_path = os.path.join(PROJECT_ROOT, "engine", "game_engine.exe")
+        subprocess.run([engine_path], check=True, cwd=PROJECT_ROOT)
     except FileNotFoundError:
         print("Error: game_engine.exe not found in engine/ folder. Using Python fallback.")
         ejecutar_engine_python()
@@ -148,7 +166,7 @@ def dibujar_tablero(tablero_datos):
             
             pygame.draw.rect(pantalla, (100, 100, 100), (x, y, TAMANO_CELDA, TAMANO_CELDA), 1)
             
-            if simbolo == especie_seleccionada and simbolo in ["R", "F", "T"]:
+            if simbolo == especie_seleccionada and simbolo in ["R", "F", "T", "D"]:
                 pygame.draw.rect(pantalla, (255, 0, 0), (x, y, TAMANO_CELDA, TAMANO_CELDA), 3)
 
 def obtener_rutas_backtracking(estado, simbolo):
@@ -221,21 +239,29 @@ def dibujar_hud(estado, ruta_completa=None, siguiente=None):
         pantalla.blit(texto_greedy, (ANCHO_TABLERO + 20, 100))
 
     especies = bridge.get_species_list(estado)
-    y_offset = 150 
+    y_offset = 135 
     
     for sp in especies:
-        info = f"{sp['name']}: Pop {sp['population']} | Hun {sp['hunger']}"
-        color_texto = COLORES.get(sp['symbol'], (255, 255, 255)) 
+        alerta_hambre = " !" if sp["status"] == "active" and sp["hunger"] >= HUNGER_THRESHOLD else ""
+        info = f"{sp['name']}: Pop {sp['population']} | Hun {sp['hunger']}{alerta_hambre}"
+        color_texto = (255, 90, 90) if alerta_hambre else COLORES.get(sp['symbol'], (255, 255, 255)) 
         pantalla.blit(fuente.render(info, True, color_texto), (ANCHO_TABLERO + 20, y_offset))
-        y_offset += 40
+        y_offset += 32
 
-    y_offset += 20
+    y_offset += 16
+    pantalla.blit(fuente.render("Rules:", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset))
+    pantalla.blit(fuente_pequena.render(f"Feed: -{FEED_REDUCTION} hunger", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 28))
+    pantalla.blit(fuente_pequena.render(f"Turn: +{HUNGER_PER_TURN} hunger", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 52))
+    pantalla.blit(fuente_pequena.render(f"Pop loss: hunger >= {HUNGER_THRESHOLD}", True, (255, 170, 170)), (ANCHO_TABLERO + 20, y_offset + 76))
+
+    y_offset += 92
     pantalla.blit(fuente.render("Controls:", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset))
-    pantalla.blit(fuente.render("Click: Select", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 30))
-    pantalla.blit(fuente.render("'A': Feed", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 60))
-    pantalla.blit(fuente.render("'M': Migrate", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 90))
+    pantalla.blit(fuente_pequena.render("Click: Select", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 28))
+    pantalla.blit(fuente_pequena.render(f"'A': Feed (-{FEED_REDUCTION})", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 52))
+    pantalla.blit(fuente_pequena.render("'M': Migrate", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 76))
+    pantalla.blit(fuente_pequena.render("'R': Reset", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset + 100))
 
-    y_offset += 135
+    y_offset += 124
     pantalla.blit(fuente.render("Backtracking:", True, (200, 200, 200)), (ANCHO_TABLERO + 20, y_offset))
     y_offset += 28
 
@@ -281,16 +307,8 @@ while corriendo:
             # Restart
             if estado_juego in ["lost", "won"]:
                 if rect_boton_reiniciar.collidepoint(x_mouse, y_mouse):
-                    ruta_estado = "data/state.json"
-                    ruta_input = "data/input.json"
-                    
-                    if os.path.exists(ruta_estado):
-                        os.remove(ruta_estado)
-                    if os.path.exists(ruta_input):
-                        os.remove(ruta_input)
-                    
                     especie_seleccionada = None
-                    ejecutar_engine() 
+                    reiniciar_estado() 
             
             # Selection
             elif estado_juego == "running" and x_mouse < ANCHO_TABLERO:
@@ -298,11 +316,15 @@ while corriendo:
                 fila = y_mouse // TAMANO_CELDA
                 simbolo_click = matriz_tablero[fila][col]
                 
-                if simbolo_click in ["R", "F", "T"]:
+                if simbolo_click in ["R", "F", "T", "D"]:
                     especie_seleccionada = simbolo_click
 
         # Keyboard
         elif evento.type == pygame.KEYDOWN and estado_juego == "running":
+            if evento.key == pygame.K_r:
+                especie_seleccionada = None
+                reiniciar_estado()
+
             if especie_seleccionada:
                 if evento.key == pygame.K_a:
                     bridge.write_action("feed", especie_seleccionada)
