@@ -53,22 +53,6 @@ It includes:
 
 ---
 
-## 🧩 Checkpoint
-
-The *checkpoint* document corresponds to **Milestone 1** and focuses entirely on design (no implementation).
-
-It includes:
-
-* Pseudocode for greedy and backtracking algorithms
-* Data structure design (linked list and tree)
-* JSON input/output contract
-* Pygame wireframe
-* Work distribution among team members
-
-👉 This document represents the **foundation of the project**, ensuring that all components are clearly defined before coding begins.
-
----
-
 ## 📊 Slides
 
 The *slides* are used for oral presentations of the project.
